@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: gamevault-api
+    runtime: docker
+    plan: free
+    rootDir: api
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Database__ApplyMigrationsOnStartup
+        value: "true"
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Igdb__ClientId
+        sync: false
+      - key: Igdb__ClientSecret
+        sync: false
+      - key: Frontend__AllowedOrigins__0
+        sync: false

@@ -1,0 +1,166 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API — build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('api/**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore api/GameVault.slnx
+
+      - name: Build
+        run: dotnet build api/GameVault.slnx --configuration Release --no-restore --warnaserror
+
+      - name: Test
+        shell: bash
+        run: |
+          set +e
+
+          dotnet test api/GameVault.Services.Tests/GameVault.Services.Tests.csproj \
+            --configuration Release \
+            --no-restore \
+            --no-build \
+            --logger "trx;LogFileName=services-tests.trx" \
+            --results-directory api/TestResults/Services
+          services_status=$?
+
+          dotnet test api/GameVault.Api.Tests/GameVault.Api.Tests.csproj \
+            --configuration Release \
+            --no-restore \
+            --no-build \
+            --logger "trx;LogFileName=api-tests.trx" \
+            --results-directory api/TestResults/Api
+          api_status=$?
+
+          if [ "$services_status" -ne 0 ] || [ "$api_status" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Upload failed test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: api/TestResults/**/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish
+        run: |
+          dotnet publish api/GameVault.Api/GameVault.Api.csproj \
+            --configuration Release \
+            --no-restore \
+            --output "${{ runner.temp }}/published-api" \
+            -p:TreatWarningsAsErrors=true
+
+  client:
+    name: Client — lint and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  docker:
+    name: Docker — build image
+    needs: [api, client]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: api
+          file: api/Dockerfile
+          push: false
+          tags: gamevault-api:ci
+
+  deploy:
+    name: Deploy — Render + Vercel
+    needs: [docker]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Deploy API to Render
+        run: |
+          curl --silent --show-error --fail \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Check if client changed
+        id: client_changed
+        run: |
+          if git diff --quiet HEAD^ HEAD -- client/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy client to Vercel
+        if: steps.client_changed.outputs.changed == 'true'
+        run: |
+          curl --silent --show-error --fail \
+            -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"

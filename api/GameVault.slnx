@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="GameVault.Api.Tests/GameVault.Api.Tests.csproj" />
+  <Project Path="GameVault.Api/GameVault.Api.csproj" />
+  <Project Path="GameVault.Common/GameVault.Common.csproj" />
+  <Project Path="GameVault.Contracts/GameVault.Contracts.csproj" />
+  <Project Path="GameVault.Data.Models/GameVault.Data.Models.csproj" />
+  <Project Path="GameVault.Data/GameVault.Data.csproj" />
+  <Project Path="GameVault.Infrastructure/GameVault.Infrastructure.csproj" />
+  <Project Path="GameVault.Services.Models/GameVault.Services.Models.csproj" />
+  <Project Path="GameVault.Services.Tests/GameVault.Services.Tests.csproj" />
+  <Project Path="GameVault.Services/GameVault.Services.csproj" />
+</Solution>
