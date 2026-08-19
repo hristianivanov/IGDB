@@ -7,8 +7,8 @@ function releaseYear(isoDate) {
 }
 
 export default function GameCard({ game }) {
-  const { savedByIgdbId, add } = useLibrary();
-  const saved = savedByIgdbId.get(game.id);
+  const { savedByExternalId, add } = useLibrary();
+  const saved = savedByExternalId.get(game.id);
 
   const handleSave = async (event) => {
     event.preventDefault();

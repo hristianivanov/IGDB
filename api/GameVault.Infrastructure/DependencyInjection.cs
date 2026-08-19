@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using GameVault.Contracts.Games;
-using GameVault.Infrastructure.ExternalApis.Igdb;
+using GameVault.Infrastructure.ExternalApis.Rawg;
 
 public static class DependencyInjection
 {
@@ -12,22 +12,15 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddMemoryCache();
-        services.Configure<IgdbOptions>(configuration.GetSection(IgdbOptions.SectionName));
+        services.Configure<RawgOptions>(configuration.GetSection(RawgOptions.SectionName));
 
-        services.AddHttpClient("TwitchAuth", client =>
+        services.AddHttpClient("Rawg", client =>
         {
+            client.BaseAddress = new Uri("https://api.rawg.io/api/");
             client.Timeout = TimeSpan.FromSeconds(15);
         });
 
-        services.AddHttpClient("Igdb", client =>
-        {
-            client.BaseAddress = new Uri("https://api.igdb.com/v4/");
-            client.Timeout = TimeSpan.FromSeconds(15);
-        });
-
-        services.AddSingleton<ITwitchTokenProvider, TwitchTokenProvider>();
-        services.AddScoped<IIgdbClient, IgdbClient>();
+        services.AddScoped<IGameCatalogClient, RawgClient>();
 
         return services;
     }

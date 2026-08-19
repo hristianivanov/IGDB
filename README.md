@@ -1,6 +1,6 @@
 # GameVault — Game Database Browser
 
-Full-stack **game database browser** built on the **IGDB API** (Twitch/IGDB.com).
+Full-stack **game database browser** built on the **[RAWG API](https://rawg.io/apidocs)**.
 
 Search and browse games, view details, and keep a personal **Wishlist / Playing / Completed** library.
 
@@ -8,8 +8,8 @@ Search and browse games, view details, and keep a personal **Wishlist / Playing 
 
 | Area          | Details                                                                 |
 | ------------- | ------------------------------------------------------------------------ |
-| Game Data     | Live from IGDB — no local sync, the API is a thin authenticated proxy   |
-| Auth to IGDB  | Server-side Twitch OAuth (client-credentials); the token never reaches the browser |
+| Game Data     | Live from RAWG — no local sync, the API is a thin authenticated proxy   |
+| Auth to RAWG  | Server-side API key; it never reaches the browser                       |
 | Library       | Personal Wishlist / Playing / Completed list, persisted in Postgres     |
 | Architecture  | Clean Architecture (Api / Services / Data / Infrastructure / Contracts) |
 | Deployment    | Vercel (client) · Render (API) · Neon (Postgres)                        |
@@ -21,7 +21,7 @@ Search and browse games, view details, and keep a personal **Wishlist / Playing 
 | Client   | React (JavaScript) · Vite · Tailwind CSS v4 · React Router · Axios · lucide-react |
 | API      | ASP.NET Core · .NET 8                                       |
 | Data     | PostgreSQL (Neon) · EF Core · Mapster                        |
-| External | IGDB API (games) · Twitch OAuth2 (client-credentials)        |
+| External | RAWG API (games)                                              |
 | Testing  | xUnit                                                        |
 | Delivery | GitHub Actions · Vercel · Render                             |
 
@@ -40,16 +40,15 @@ api/                         .NET 8 solution (GameVault.slnx)
   GameVault.Services.Models   DTOs shared between Api and Services
   GameVault.Data               EF Core DbContext, migrations, repositories
   GameVault.Data.Models        Persisted entities (SavedGame)
-  GameVault.Infrastructure     IGDB HTTP client + Twitch token provider
+  GameVault.Infrastructure     RAWG HTTP client (GameVault.Infrastructure.ExternalApis.Rawg)
   GameVault.Contracts          Interfaces implemented by Data/Infrastructure
   GameVault.Common             Shared exceptions and constants
   *.Tests                      xUnit test projects
 ```
 
 > [!NOTE]
-> The API never exposes IGDB/Twitch credentials to the browser. The client only ever
-> calls `GameVault.Api`, which fetches from IGDB server-side and caches its Twitch
-> access token in memory.
+> The API never exposes the RAWG API key to the browser. The client only ever calls
+> `GameVault.Api`, which fetches from RAWG server-side.
 
 ## Main API Routes
 
@@ -57,7 +56,7 @@ api/                         .NET 8 solution (GameVault.slnx)
 | ------ | ----------------------- | ---------------------------------------------------- |
 | GET    | `/api/health`            | Health check                                          |
 | GET    | `/api/games/search`      | Search games by name (`query`, `limit`, `offset`)    |
-| GET    | `/api/games/popular`     | Highest-rated games with enough ratings to be notable |
+| GET    | `/api/games/popular`     | Most-added games on RAWG (its own popularity signal)  |
 | GET    | `/api/games/{id}`        | Full game details (summary, genres, platforms, screenshots, companies) |
 | GET    | `/api/library`           | List your saved games                                 |
 | POST   | `/api/library`           | Add a game to your library                             |
@@ -72,26 +71,16 @@ Swagger UI is available in Development at `http://localhost:8080/swagger`.
 > - [x] **.NET 8 SDK**
 > - [x] **Node.js 20+**
 > - [x] **PostgreSQL** running locally (or a [Neon](https://neon.tech) connection string)
-> - [x] **A Twitch Developer app** (see below) for IGDB access
+> - [x] **A RAWG API key** (see below)
 
-### 1. Register a Twitch Developer app (needed for IGDB)
+### 1. Get a RAWG API key
 
-IGDB's API is operated by Twitch and requires an app registration to get a Client ID
-and Client Secret:
+1. Go to [rawg.io/apidocs](https://rawg.io/apidocs) and click **GET API KEY**.
+2. Sign up with just an email/password (no phone verification or 2FA required).
+3. Your API key appears immediately on your [RAWG API account page](https://rawg.io/login?forward=developer).
 
-1. Go to the [Twitch Developer Console](https://dev.twitch.tv/console/apps) and log in
-   with (or create) a Twitch account.
-2. Click **Register Your Application**.
-3. Fill in:
-   - **Name**: anything unique, e.g. `GameVault Local`
-   - **OAuth Redirect URLs**: `http://localhost` (not used for the client-credentials
-     flow this project uses, but Twitch requires a value)
-   - **Category**: `Application Integration`
-4. Save, then open the app and click **New Secret** to generate a Client Secret.
-5. Copy the **Client ID** and **Client Secret** — you'll need both below.
-
-No further IGDB-specific signup is required; IGDB authenticates purely through this
-Twitch app.
+The free tier covers roughly 20,000 requests/month, which is comfortably enough for a
+personal project.
 
 ### 2. Clone and configure the API
 
@@ -103,8 +92,7 @@ cd IGDB
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=gamevault;Username=postgres;Password=YOUR_PASSWORD" --project api/GameVault.Api
 
-dotnet user-secrets set "Igdb:ClientId" "your_twitch_client_id" --project api/GameVault.Api
-dotnet user-secrets set "Igdb:ClientSecret" "your_twitch_client_secret" --project api/GameVault.Api
+dotnet user-secrets set "Rawg:ApiKey" "your_rawg_api_key" --project api/GameVault.Api
 ```
 
 ### 3. Apply migrations and run the backend
@@ -142,7 +130,7 @@ cd client && npm install && npm run lint && npm run build
 | Piece  | Service | Notes |
 | ------ | ------- | ----- |
 | Client | [Vercel](https://vercel.com) | `client/vercel.json` sets the build/output config and CSP headers |
-| API    | [Render](https://render.com) | `render.yaml` (Docker-based web service) at the repo root; set `Igdb__ClientId`, `Igdb__ClientSecret`, `ConnectionStrings__DefaultConnection`, and `Frontend__AllowedOrigins__0` as env vars in the Render dashboard |
+| API    | [Render](https://render.com) | `render.yaml` (Docker-based web service) at the repo root; set `Rawg__ApiKey`, `ConnectionStrings__DefaultConnection`, and `Frontend__AllowedOrigins__0` as env vars in the Render dashboard |
 | DB     | [Neon](https://neon.tech) | Free-tier Postgres; use its pooled connection string (`sslmode=require`) as `ConnectionStrings__DefaultConnection` |
 
 `GitHub Actions` (`.github/workflows/workflow.yml`) builds and tests both projects on

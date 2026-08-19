@@ -10,7 +10,7 @@ export default function GameDetailsPage() {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { savedByIgdbId, add, updateStatus } = useLibrary();
+  const { savedByExternalId, add, updateStatus } = useLibrary();
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +37,7 @@ export default function GameDetailsPage() {
   if (loading) return <p className="px-4 py-8 text-sm text-slate-400">Loading…</p>;
   if (error || !game) return <p className="px-4 py-8 text-sm text-red-400">{error ?? 'Game not found.'}</p>;
 
-  const saved = savedByIgdbId.get(game.id);
+  const saved = savedByExternalId.get(game.id);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">

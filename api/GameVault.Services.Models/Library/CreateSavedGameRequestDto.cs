@@ -2,7 +2,7 @@ namespace GameVault.Services.Models.Library;
 
 public class CreateSavedGameRequestDto
 {
-    public long IgdbGameId { get; set; }
+    public long ExternalGameId { get; set; }
 
     public string Name { get; set; } = string.Empty;
 

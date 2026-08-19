@@ -25,7 +25,7 @@ export default function LibraryPage() {
       <ul className="flex flex-col divide-y divide-white/10">
         {savedGames.map((game) => (
           <li key={game.id} className="flex items-center gap-4 py-3">
-            <Link to={`/games/${game.igdbGameId}`} className="shrink-0">
+            <Link to={`/games/${game.externalGameId}`} className="shrink-0">
               <div className="h-20 w-16 overflow-hidden rounded bg-slate-800">
                 {game.coverUrl && (
                   <img src={game.coverUrl} alt={game.name} className="h-full w-full object-cover" />
@@ -33,7 +33,7 @@ export default function LibraryPage() {
               </div>
             </Link>
 
-            <Link to={`/games/${game.igdbGameId}`} className="flex-1 text-sm font-medium text-slate-100 hover:text-violet-300">
+            <Link to={`/games/${game.externalGameId}`} className="flex-1 text-sm font-medium text-slate-100 hover:text-violet-300">
               {game.name}
             </Link>
 

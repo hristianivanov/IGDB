@@ -27,7 +27,7 @@ export function LibraryProvider({ children }) {
 
   const add = useCallback(async (game, status = 'Wishlist') => {
     const saved = await addToLibrary({
-      igdbGameId: game.id,
+      externalGameId: game.id,
       name: game.name,
       coverUrl: game.coverUrl,
       status,
@@ -45,15 +45,15 @@ export function LibraryProvider({ children }) {
     setSavedGames((current) => current.filter((g) => g.id !== id));
   }, []);
 
-  const savedByIgdbId = useMemo(() => {
+  const savedByExternalId = useMemo(() => {
     const map = new Map();
-    for (const game of savedGames) map.set(game.igdbGameId, game);
+    for (const game of savedGames) map.set(game.externalGameId, game);
     return map;
   }, [savedGames]);
 
   const value = useMemo(
-    () => ({ savedGames, loading, error, refresh, add, updateStatus, remove, savedByIgdbId }),
-    [savedGames, loading, error, refresh, add, updateStatus, remove, savedByIgdbId],
+    () => ({ savedGames, loading, error, refresh, add, updateStatus, remove, savedByExternalId }),
+    [savedGames, loading, error, refresh, add, updateStatus, remove, savedByExternalId],
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

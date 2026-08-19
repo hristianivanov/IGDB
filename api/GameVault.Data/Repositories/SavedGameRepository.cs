@@ -16,9 +16,9 @@ public class SavedGameRepository(ApplicationDbContext dbContext) : ISavedGameRep
         => await dbContext.SavedGames
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
-    public async Task<SavedGame?> GetByIgdbGameIdAsync(long igdbGameId, CancellationToken cancellationToken)
+    public async Task<SavedGame?> GetByExternalGameIdAsync(long externalGameId, CancellationToken cancellationToken)
         => await dbContext.SavedGames
-            .FirstOrDefaultAsync(g => g.IgdbGameId == igdbGameId, cancellationToken);
+            .FirstOrDefaultAsync(g => g.ExternalGameId == externalGameId, cancellationToken);
 
     public async Task<SavedGame> AddAsync(SavedGame savedGame, CancellationToken cancellationToken)
     {

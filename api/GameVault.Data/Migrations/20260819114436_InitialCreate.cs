@@ -16,7 +16,7 @@ namespace GameVault.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    IgdbGameId = table.Column<long>(type: "bigint", nullable: false),
+                    ExternalGameId = table.Column<long>(type: "bigint", nullable: false),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     CoverUrl = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
@@ -29,9 +29,9 @@ namespace GameVault.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_SavedGames_IgdbGameId",
+                name: "IX_SavedGames_ExternalGameId",
                 table: "SavedGames",
-                column: "IgdbGameId",
+                column: "ExternalGameId",
                 unique: true);
         }
 

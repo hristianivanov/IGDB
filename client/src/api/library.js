@@ -5,9 +5,9 @@ export async function getLibrary() {
   return data;
 }
 
-export async function addToLibrary({ igdbGameId, name, coverUrl, status }) {
+export async function addToLibrary({ externalGameId, name, coverUrl, status }) {
   const { data } = await apiClient.post('/library', {
-    igdbGameId,
+    externalGameId,
     name,
     coverUrl,
     status,

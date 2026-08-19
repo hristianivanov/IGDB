@@ -4,7 +4,7 @@ public class SavedGameDto
 {
     public Guid Id { get; set; }
 
-    public long IgdbGameId { get; set; }
+    public long ExternalGameId { get; set; }
 
     public string Name { get; set; } = string.Empty;
 

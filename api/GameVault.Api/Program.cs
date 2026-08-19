@@ -164,7 +164,7 @@ app.UseExceptionHandler(errorApp =>
                 });
                 return;
 
-            case IgdbUnavailableException:
+            case GameCatalogUnavailableException:
                 context.Response.StatusCode = StatusCodes.Status502BadGateway;
                 await context.Response.WriteAsJsonAsync(new ErrorResponseDto
                 {

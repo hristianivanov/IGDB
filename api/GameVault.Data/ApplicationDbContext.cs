@@ -14,7 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).HasMaxLength(255).IsRequired();
             entity.Property(e => e.CoverUrl).HasMaxLength(1024);
-            entity.HasIndex(e => e.IgdbGameId).IsUnique();
+            entity.HasIndex(e => e.ExternalGameId).IsUnique();
         });
 
         base.OnModelCreating(modelBuilder);

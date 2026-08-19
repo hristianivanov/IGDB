@@ -19,15 +19,15 @@ public class LibraryService(ISavedGameRepository savedGameRepository)
     {
         var status = ParseStatus(request.Status);
 
-        var existing = await savedGameRepository.GetByIgdbGameIdAsync(request.IgdbGameId, cancellationToken);
+        var existing = await savedGameRepository.GetByExternalGameIdAsync(request.ExternalGameId, cancellationToken);
         if (existing is not null)
-            throw new ValidationException($"Game '{request.IgdbGameId}' is already in your library.");
+            throw new ValidationException($"Game '{request.ExternalGameId}' is already in your library.");
 
         var now = DateTime.UtcNow;
         var savedGame = new SavedGame
         {
             Id = Guid.NewGuid(),
-            IgdbGameId = request.IgdbGameId,
+            ExternalGameId = request.ExternalGameId,
             Name = request.Name,
             CoverUrl = request.CoverUrl,
             Status = status,

@@ -26,12 +26,12 @@ public class LibraryServiceTests
     [Fact]
     public async Task AddAsync_RejectsDuplicateGame()
     {
-        var existing = new SavedGame { Id = Guid.NewGuid(), IgdbGameId = 42, Name = "Existing", Status = GameListStatus.Wishlist };
+        var existing = new SavedGame { Id = Guid.NewGuid(), ExternalGameId = 42, Name = "Existing", Status = GameListStatus.Wishlist };
         var repository = new FakeSavedGameRepository([existing]);
         var service = CreateService(repository);
 
         var request = ValidRequest();
-        request.IgdbGameId = 42;
+        request.ExternalGameId = 42;
 
         var exception = await Assert.ThrowsAsync<ValidationException>(() => service.AddAsync(request, CancellationToken.None));
 
@@ -63,7 +63,7 @@ public class LibraryServiceTests
     [Fact]
     public async Task UpdateStatusAsync_UpdatesStatus()
     {
-        var existing = new SavedGame { Id = Guid.NewGuid(), IgdbGameId = 1, Name = "Hades", Status = GameListStatus.Wishlist };
+        var existing = new SavedGame { Id = Guid.NewGuid(), ExternalGameId = 1, Name = "Hades", Status = GameListStatus.Wishlist };
         var repository = new FakeSavedGameRepository([existing]);
         var service = CreateService(repository);
 
@@ -75,7 +75,7 @@ public class LibraryServiceTests
     [Fact]
     public async Task DeleteAsync_RemovesGame()
     {
-        var existing = new SavedGame { Id = Guid.NewGuid(), IgdbGameId = 1, Name = "Hades", Status = GameListStatus.Wishlist };
+        var existing = new SavedGame { Id = Guid.NewGuid(), ExternalGameId = 1, Name = "Hades", Status = GameListStatus.Wishlist };
         var repository = new FakeSavedGameRepository([existing]);
         var service = CreateService(repository);
 
@@ -86,9 +86,9 @@ public class LibraryServiceTests
 
     private static CreateSavedGameRequestDto ValidRequest() => new()
     {
-        IgdbGameId = 1942,
+        ExternalGameId = 1942,
         Name = "The Witcher 3",
-        CoverUrl = "https://images.igdb.com/cover.jpg",
+        CoverUrl = "https://media.rawg.io/media/cover.jpg",
         Status = "Wishlist",
     };
 
@@ -105,8 +105,8 @@ public class LibraryServiceTests
         public Task<SavedGame?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
             => Task.FromResult(Games.SingleOrDefault(g => g.Id == id));
 
-        public Task<SavedGame?> GetByIgdbGameIdAsync(long igdbGameId, CancellationToken cancellationToken)
-            => Task.FromResult(Games.SingleOrDefault(g => g.IgdbGameId == igdbGameId));
+        public Task<SavedGame?> GetByExternalGameIdAsync(long externalGameId, CancellationToken cancellationToken)
+            => Task.FromResult(Games.SingleOrDefault(g => g.ExternalGameId == externalGameId));
 
         public Task<SavedGame> AddAsync(SavedGame savedGame, CancellationToken cancellationToken)
         {

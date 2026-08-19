@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GameVault.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260818042417_InitialCreate")]
+    [Migration("20260819114436_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -38,7 +38,7 @@ namespace GameVault.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("IgdbGameId")
+                    b.Property<long>("ExternalGameId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
@@ -54,7 +54,7 @@ namespace GameVault.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IgdbGameId")
+                    b.HasIndex("ExternalGameId")
                         .IsUnique();
 
                     b.ToTable("SavedGames");

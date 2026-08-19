@@ -8,7 +8,7 @@ public interface ISavedGameRepository
 
     Task<SavedGame?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<SavedGame?> GetByIgdbGameIdAsync(long igdbGameId, CancellationToken cancellationToken);
+    Task<SavedGame?> GetByExternalGameIdAsync(long externalGameId, CancellationToken cancellationToken);
 
     Task<SavedGame> AddAsync(SavedGame savedGame, CancellationToken cancellationToken);
 

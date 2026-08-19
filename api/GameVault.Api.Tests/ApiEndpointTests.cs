@@ -27,9 +27,9 @@ public class ApiEndpointTests : IClassFixture<ApiWebApplicationFactory>
     {
         var createRequest = new CreateSavedGameRequestDto
         {
-            IgdbGameId = 1942,
+            ExternalGameId = 1942,
             Name = "The Witcher 3",
-            CoverUrl = "https://images.igdb.com/cover.jpg",
+            CoverUrl = "https://media.rawg.io/media/cover.jpg",
             Status = "Wishlist",
         };
 
